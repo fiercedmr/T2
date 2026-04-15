@@ -26,5 +26,28 @@ Gap: {round(gap,2)}%
 """
 
     send_telegram(msg)
+    def run():
+    nifty = yf.download("^NSEI", period="5d", interval="1d")
+    vix = yf.download("^INDIAVIX", period="5d", interval="1d")
 
-run()
+    # Check if data is enough
+    if len(nifty) < 2 or len(vix) < 1:
+        send_telegram("⚠️ Not enough data to calculate")
+        return
+
+    today = nifty.iloc[-1]
+    prev = nifty.iloc[-2]
+
+    gap = ((today['Open'] - prev['Close']) / prev['Close']) * 100
+
+    msg = f"""
+📊 NIFTY:
+Price: {round(today['Close'],2)}
+Gap: {round(gap,2)}%
+
+📉 VIX: {round(vix.iloc[-1]['Close'],2)}
+"""
+
+    send_telegram(msg)
+
+
