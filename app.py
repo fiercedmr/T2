@@ -2,7 +2,7 @@ import yfinance as yf
 import requests
 
 BOT_TOKEN = "7884471454:AAGACFUOkmhE4AN9sV3yRCtU5kypufQSqYk"
-CHAT_ID = "@Docintradingbot"
+CHAT_ID = "838128310"
 
 def send_telegram(msg):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
