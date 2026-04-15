@@ -26,7 +26,7 @@ Gap: {round(gap,2)}%
 """
 
     send_telegram(msg)
-    def run
+    def run ()
     nifty = yf.download("^NSEI", period="5d", interval="1d")
     vix = yf.download("^INDIAVIX", period="5d", interval="1d")
 
