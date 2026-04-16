@@ -3,7 +3,7 @@ import requests
 import os
 import time
 
-BOT_TOKEN = os.getenv("7884471454:AAGACFUOkmhE4AN9sV3yRCtU5kypufQSqYk")
+BOT_TOKEN = os.getenv("7884471454:AAGd3xW5kyZh0NRBrcFi5LBA5lQKecJ_Er8")
 CHAT_ID = os.getenv("838128310")
 
 def send_telegram(msg):
