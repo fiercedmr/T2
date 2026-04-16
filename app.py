@@ -7,8 +7,8 @@ BOT_TOKEN = os.getenv("7884471454:AAGd3xW5kyZh0NRBrcFi5LBA5lQKecJ_Er8")
 CHAT_ID = os.getenv("838128310")
 
 def send_telegram(msg):
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-    requests.post(url, data={"chat_id": CHAT_ID, "text": msg})
+    url = f"https://api.telegram.org/bot{7884471454:AAGd3xW5kyZh0NRBrcFi5LBA5lQKecJ_Er8}/sendMessage"
+    requests.post(url, data={"838128310": CHAT_ID, "text": msg})
 
 def run():
     nifty = yf.download("^NSEI", period="5d", interval="1d")
