@@ -33,6 +33,7 @@ Gap: {round(gap, 2)}%
 """
 
     send_telegram(message)
+    send_telegram("🚀 BOT STARTED")
 
 while True:
     try:
