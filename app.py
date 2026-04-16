@@ -22,89 +22,55 @@ def send_telegram(msg):
 send_telegram("🚀 SIGNAL BOT LIVE")
 
 # ============================
-# GET DATA (ROBUST VERSION)
+# ROBUST DATA FETCH (NO FAIL)
 # ============================
 def get_data():
-    try:
-        # Retry mechanism
-        for _ in range(3):
-            nifty = yf.download("^NSEI", period="5d", interval="1d", progress=False)
-            vix = yf.download("^INDIAVIX", period="5d", interval="1d", progress=False)
+    for _ in range(5):  # retry 5 times
+        try:
+            nifty = yf.download("^NSEI", period="5d", interval="1d", progress=False, threads=False)
+            vix = yf.download("^INDIAVIX", period="5d", interval="1d", progress=False, threads=False)
 
             if len(nifty) >= 2 and len(vix) >= 1:
-                break
-            time.sleep(2)
+                today = nifty.iloc[-1]
+                prev = nifty.iloc[-2]
 
-        if len(nifty) < 2 or len(vix) < 1:
-            return None
+                gap = float(((today['Open'] - prev['Close']) / prev['Close']) * 100)
 
-        today = nifty.iloc[-1]
-        prev = nifty.iloc[-2]
+                return {
+                    "price": float(today['Close']),
+                    "gap": gap,
+                    "vix": float(vix.iloc[-1]['Close'])
+                }
 
-        gap = float(((today['Open'] - prev['Close']) / prev['Close']) * 100)
-
-        # Try global data (optional)
-        try:
-            us = yf.download("^GSPC", period="5d", interval="1d", progress=False)
-            asia = yf.download("^N225", period="5d", interval="1d", progress=False)
-
-            if len(us) >= 2 and len(asia) >= 2:
-                us_change = float((us.iloc[-1]['Close'] - us.iloc[-2]['Close']) / us.iloc[-2]['Close'])
-                asia_change = float((asia.iloc[-1]['Close'] - asia.iloc[-2]['Close']) / asia.iloc[-2]['Close'])
-            else:
-                us_change = 0
-                asia_change = 0
         except:
-            us_change = 0
-            asia_change = 0
+            pass
 
-        return {
-            "price": float(today['Close']),
-            "gap": gap,
-            "vix": float(vix.iloc[-1]['Close']),
-            "us_change": us_change,
-            "asia_change": asia_change
-        }
+        time.sleep(2)
 
-    except:
-        return None
+    return None
 
 # ============================
-# SIGNAL LOGIC
+# SIMPLE & RELIABLE STRATEGY
 # ============================
 def generate_signal(data):
-    # Global bias (stable)
-    if data['us_change'] >= 0 and data['asia_change'] >= 0:
-        bias = "BULLISH"
-    elif data['us_change'] < 0 and data['asia_change'] < 0:
-        bias = "BEARISH"
-    else:
-        return "NO TRADE", "Mixed Global"
+    gap = data['gap']
+    vix = data['vix']
 
     # VIX filter
-    if not (13.5 < data['vix'] < 18.5):
+    if not (13.5 < vix < 18.5):
         return "NO TRADE", "VIX Out of Range"
 
-    gap = data['gap']
-
+    # No clear gap
     if abs(gap) < 0.3:
         return "NO TRADE", "No Clear Gap"
 
-    # Small gap → continuation
-    if 0.3 <= abs(gap) <= 0.7:
-        if gap > 0 and bias == "BULLISH":
-            return "BUY CALL", bias
-        elif gap < 0 and bias == "BEARISH":
-            return "BUY PUT", bias
+    # Core logic (robust)
+    if gap < 0:
+        return "BUY CALL", "Gap Down Reversal"
+    elif gap > 0:
+        return "BUY PUT", "Gap Up Reversal"
 
-    # Big gap → reversal
-    if abs(gap) > 0.7:
-        if gap > 0 and bias == "BEARISH":
-            return "BUY PUT", bias
-        elif gap < 0 and bias == "BULLISH":
-            return "BUY CALL", bias
-
-    return "NO TRADE", bias
+    return "NO TRADE", "No Setup"
 
 # ============================
 # MAIN EXECUTION
@@ -113,7 +79,7 @@ def run():
     data = get_data()
 
     if not data:
-        send_telegram("⚠️ Data issue (retrying...)")
+        send_telegram("⚠️ Data fetch failed")
         return
 
     signal, reason = generate_signal(data)
@@ -125,7 +91,7 @@ Gap: {round(data['gap'],2)}%
 
 📉 VIX: {round(data['vix'],2)}
 
-🌍 Bias: {reason}
+🧠 Setup: {reason}
 
 🚀 SIGNAL: {signal}
 🎯 Target: 10-12%
